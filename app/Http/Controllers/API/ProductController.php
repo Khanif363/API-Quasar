@@ -12,7 +12,12 @@ class ProductController extends Controller
 
     public function index (Request $request) {
         $products = Product::with('category')->where('name', 'like', '%' . $request->keyword . '%')->get();
-        $totalprice = Product::sum('price');
+        // Price * Quantity
+        $products->transform(function ($product) {
+            $product->price_total = $product->price * $product->quantity;
+            return $product;
+        });
+        $totalprice = $products->sum('price_total');
         return response()->json([
             'message' => 'Successfully get all products!',
             'products' => $products,
